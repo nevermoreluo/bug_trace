@@ -1,6 +1,6 @@
 # bug_trace
 工作好几年，才发现原来你遇到的bug其实都和你有缘  
-记录下bug，
+记录下bug，哪怕先记录一些流水账式的bug场景，也给自己一些记忆中留下点检索的面包屑  
 收集记录bug&error
 
 
@@ -12,7 +12,8 @@
 
 ### <3>init: (28848) ERROR: UtilConnectToInteropServer:300: connect failed 2
 环境：`Docker Desktop`, `wsl2`  
-原理： 还不太明白  
+原理：  
+还不太明白 [参考wsl issues#5065](https://github.com/microsoft/WSL/issues/5065)  
 
 解决方式：  
 在Docker+wsl2环境下执行docker-compose中遇到错误，将一下脚本写入~/.bashrc 文件最下方，
@@ -28,15 +29,25 @@ fix_wsl2_interop() {
 另外开启一个终端或者重新打开当前终端，或者通过命令强制刷新`source ~/.bashrc`
 后执行 `fix_wsl2_interop` 即可修复
 
-[参考wsl issues#5065](https://github.com/microsoft/WSL/issues/5065)
 
 
 ### test.sh: line 3: $'\r': command not found
-环境： `linux shell`  
-原理： 在windows换下编辑文件时，部分ide会将换行转换  
+环境： `linux`, `shell`  
+原理：   
+在windows换下编辑文件时，部分ide会将换行转换  
 
 解决方式：  
 替换掉\r即可 `sed -i 's/\r$//' test.sh` 
+
+
+### rsync error: failed to set times on "/foo/bar": Operation not permitted
+环境： `linux`, `rsync`  
+原理：
+同步目录时间存在权限问题，通过跳过同步目录时间选项可以解决，[stackoverflow](https://stackoverflow.com/questions/667992/rsync-error-failed-to-set-times-on-foo-bar-operation-not-permitted)
+
+解决方式：  
+跳过同步目录时间，添加--omit-dir-times命令到rsync参数  
+
 
 
 ## Nodejs
@@ -51,3 +62,7 @@ fix_wsl2_interop() {
 1.通过nslookup或dig查看解析是否正常  
 2.查看本机hosts文件是否存在异常改动  
 3.查看本机是否存在代理服务，并劫持了53端口解析  
+
+
+
+
