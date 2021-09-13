@@ -30,6 +30,19 @@ fix_wsl2_interop() {
 后执行 `fix_wsl2_interop` 即可修复
 
 
+#### CMakeFile Permission denied
+环境： `Wsl2`, `Clion`  
+原理：  
+Clion 默认启动时 使用wsl中的root用户创建了文件，导致权限不正常,删除对应文件 重新启动机器即可恢复
+
+解决方式：  
+查看项目下.idea文件为root权限，则进行以下操作  
+```
+cd <ProjectDir>  
+sudo rm -r .idea cmake-build-*  
+```
+关机重启查看文件权限,恢复到当前用户即可正常运行
+
 
 ### test.sh: line 3: $'\r': command not found
 环境： `linux`, `shell`  
