@@ -10,8 +10,37 @@
 
 ## Wsl
 
+### getsocketopt error: 92 Protocol not available
+环境： `Wsl`  
+原理：  
+wsl在版本1，没有TCP_INFO的实现，即不论getsocketopt或者setsocketopt不允许在wsl1中调用关于TCP_INFO的调用, 例如
+```
+getsockopt (m_Handle, IPPROTO_TCP, TCP_INFO, &info, (socklen_t *)&optlen)
+```
+
+`注意: KEEPALIVE同样存在问题`
+
+按官方的说法是wsl2里面已经修复了该问题
+
+[参考wsl issues#1982](https://github.com/microsoft/WSL/issues/1982)
+
+
+解决方式：  
+升级wsl到wsl2
+然后在wsl中执行python测试
+`python3 -c "import socket; socket.socket().getsockopt(socket.SOL_TCP, socket.TCP_INFO)"`如果没有报下面的报错就说明修复了
+```
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/lib/python2.7/socket.py", line 228, in meth
+    return getattr(self._sock,name)(*args)
+socket.error: [Errno 92] Protocol not available
+```
+
+
+
 ### <3>init: (28848) ERROR: UtilConnectToInteropServer:300: connect failed 2
-环境：`Docker Desktop`, `wsl2`  
+环境：`Docker Desktop`, `Wsl2`  
 原理：  
 还不太明白 [参考wsl issues#5065](https://github.com/microsoft/WSL/issues/5065)  
 
