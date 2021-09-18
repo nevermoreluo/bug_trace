@@ -26,9 +26,9 @@ getsockopt (m_Handle, IPPROTO_TCP, TCP_INFO, &info, (socklen_t *)&optlen)
 
 
 解决方式：  
-升级wsl到wsl2
-然后在wsl中执行python测试
-`python3 -c "import socket; socket.socket().getsockopt(socket.SOL_TCP, socket.TCP_INFO)"`如果没有报下面的报错就说明修复了
+升级wsl到wsl2  
+然后在wsl中执行python测试  
+`python3 -c "import socket; socket.socket().getsockopt(socket.SOL_TCP, socket.TCP_INFO)"`如果没有报下面的报错就说明完成了
 ```
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
