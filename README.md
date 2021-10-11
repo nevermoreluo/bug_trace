@@ -136,5 +136,16 @@ https网址可以在浏览器内被正常打开，但是通过命令例如git，
 3.查看本机是否存在代理服务，并劫持了53端口解析  
 
 
+### Parse Error: Invalid method encountered
+环境： `nodejs` `express`
+
+原理：  
+在收到客户端发送过来的socket包解包时，试图通过http协议解包，解析到了不正确的method  
+我们遇到的情况是，有个同事将express的
+`private app: net.Server = net.createServer();` 改成了`private app: http.Server = http.createServer();`,原本是socket服务器被强行改成httpserver解析就报错了
+
+
+解决方式：
+一般来说，http和原生socket的网络层都有现成的框架，定位到这里绝大多数就都是业务层的问题了，和发起请求的客户端确定好到底是用http还是原生socket或者ws就行
 
 
