@@ -136,6 +136,40 @@ https网址可以在浏览器内被正常打开，但是通过命令例如git，
 3.查看本机是否存在代理服务，并劫持了53端口解析  
 
 
+### ReferenceError: primordials is not defined
+环境： `nodejs`  
+原理：  
+`Nodejs`的版本和`graceful-fs`的版本不匹配，即低版本的`graceful-fs`调用了一些api不兼容  
+
+解决方式:
+
+如果是yarn，修改`package.json`文件 加入如下内容  
+```
+{
+...
+
+  "resolutions": {
+    "graceful-fs": "^4.2.4"
+  }
+}
+```
+
+如果是npm，修改`package.json`文件 加入如下内容  
+```
+{
+...
+  "scripts": {
+    "preinstall": "npx npm-force-resolutions"
+  },
+  "resolutions": {
+    "graceful-fs": "^4.2.4"
+  }
+}
+```
+
+[参考](https://stackoverflow.com/questions/55921442/how-to-fix-referenceerror-primordials-is-not-defined-in-node-js)
+
+
 ### Parse Error: Invalid method encountered
 环境： `nodejs` `express`
 
