@@ -183,3 +183,104 @@ https网址可以在浏览器内被正常打开，但是通过命令例如git，
 一般来说，http和原生socket的网络层都有现成的框架，定位到这里绝大多数就都是业务层的问题了，和发起请求的客户端确定好到底是用http还是原生socket或者ws就行
 
 
+
+## Lua
+
+### C stack overflow
+环境: `C++` `Lua`  
+
+原理:  
+lua层代码调用了超过指定数量（默认200次）的cfunc导致的bug  
+
+
+解决方法：  
+通常来说，大概率发生在require死循环中，排查require相互引用改为惰性引用或者修改程序结构可以解决  
+
+当然如果在c++中直接调用luaState运行，并且嵌入了很多c结构体的，可以在源码lstate.c中直接在C stack overflow处加入断点，即对具体业务分析对象在何处死循环  
+
+额外提供一个实用的打印堆栈的函数  
+```cpp
+void luaStackTrace(lua_State *L)
+{
+    int i;
+    int top = lua_gettop(L);
+    printf("---- Begin Stack ----\n");
+    printf("Stack size: %i\n\n", top);
+    for (i = top; i >= 1; i--)
+    {
+        int t = lua_type(L, i);
+        switch (t)
+        {
+            case LUA_TSTRING:
+                printf("%i -- (%i) ----string: `%s'", i, i - (top + 1), lua_tostring(L, i));
+                break;
+
+            case LUA_TBOOLEAN:
+                printf("%i -- (%i) ----bool: %s", i, i - (top + 1), lua_toboolean(L, i) ? "true" : "false");
+                break;
+
+            case LUA_TNUMBER:
+                printf("%i -- (%i) ----number: %g", i, i - (top + 1), lua_tonumber(L, i));
+                break;
+
+            case LUA_TTABLE:
+            {
+                printf("%i -- (%i) ---- %s\n", i, i - (top + 1), lua_typename(L, t));
+                lua_pushnil(L);
+                while (lua_next(L, i) != 0)
+                {
+                    switch (lua_type(L, -2))
+                    {
+                        case LUA_TSTRING:
+                            printf("| key ----string: `%s'", lua_tostring(L, -2));
+                            break;
+
+                        case LUA_TBOOLEAN:
+                            printf("| key ----bool: %s", lua_toboolean(L, -2) ? "true" : "false");
+                            break;
+
+                        case LUA_TNUMBER:
+                            printf("| key ----number: %g", lua_tonumber(L, -2));
+                            break;
+                        default:
+                            printf("| key ---- %s", lua_typename(L, -2));
+                            break;
+                    }
+                    printf("\n");
+                    switch (lua_type(L, -1))
+                    {
+                        case LUA_TSTRING:
+                            printf("| value ----string: `%s'", lua_tostring(L, -1));
+                            break;
+
+                        case LUA_TBOOLEAN:
+                            printf("| value ----bool: %s", lua_toboolean(L, -1) ? "true" : "false");
+                            break;
+
+                        case LUA_TNUMBER:
+                            printf("| value ----number: %g", lua_tonumber(L, -1));
+                            break;
+                        default:
+                            printf("| value ---- %s", lua_typename(L, -1));
+                            break;
+                    }
+
+                    printf("\n");
+                    lua_pop(L, 1);
+                }
+//                lua_pop(L, 1);
+                printf("%i -- (%i) table end", i, i - (top + 1));
+                break;
+            }
+            default:
+                printf("%i -- (%i) ---- %s", i, i - (top + 1), lua_typename(L, t));
+                break;
+        }
+        printf("\n");
+    }
+    printf("---- End Stack ----\n");
+    printf("\n");
+}
+```
+
+
