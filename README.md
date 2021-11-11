@@ -190,13 +190,42 @@ https网址可以在浏览器内被正常打开，但是通过命令例如git，
 环境: `C++` `Lua`  
 
 原理:  
-lua层代码调用了超过指定数量（默认200次）的cfunc导致的bug  
+lua层代码调用了超过指定数量 `LUAI_MAXCCALLS`（默认200次）的cfunc导致的bug  
 
 
 解决方法：  
 通常来说，大概率发生在require死循环中，排查require相互引用改为惰性引用或者修改程序结构可以解决  
 
 当然如果在c++中直接调用luaState运行，并且嵌入了很多c结构体的，可以在源码lstate.c中直接在C stack overflow处加入断点，即对具体业务分析对象在何处死循环  
+
+----------------- C stack overflow 2.0 ----------------------
+
+```cpp
+int luaCall(lua_State* L) {
+    try {
+        // 在这个业务逻辑里面存在更深层次的c层userdata调用引发了未处理的异常
+        lua_pcall(L, 0, r, 0); 
+    } catch (std::expection& ex) {
+        // handler error
+    }
+}
+```
+
+
+原理：  
+底层原理跟还是调用次数超过了`LUAI_MAXCCALLS`  
+但是由于我们业务中存在很多c++层userdata对象的调用引发了异常导致，lua_pcall无法正常处理nCcalls计数导致  
+
+例如  
+当C++层TimerUpdat时会调用上述`luaCall`，L->nCcalls计数加1    
+luaCall调用的函数，在lua层对c++层数据库对象进行操作时，引发了未捕获异常 此时L->nCcalls计数再次加1
+由于异常退出了，导致nCcalls计数未能正常处理，从而导致计数一直增长  
+
+
+解决方法：  
+在处理数据库对象引发异常时捕获并处理抛出luaL_error
+
+
 
 额外提供一个实用的打印堆栈的函数  
 ```cpp
