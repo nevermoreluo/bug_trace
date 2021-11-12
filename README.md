@@ -198,7 +198,7 @@ lua层代码调用了超过指定数量 `LUAI_MAXCCALLS`（默认200次）的cfu
 
 当然如果在c++中直接调用luaState运行，并且嵌入了很多c结构体的，可以在源码lstate.c中直接在C stack overflow处加入断点，即对具体业务分析对象在何处死循环  
 
------------------ C stack overflow 2.0 ----------------------
+#### C stack overflow 2.0 
 
 ```cpp
 int luaCall(lua_State* L) {
