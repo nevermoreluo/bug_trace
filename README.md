@@ -183,7 +183,6 @@ https网址可以在浏览器内被正常打开，但是通过命令例如git，
 一般来说，http和原生socket的网络层都有现成的框架，定位到这里绝大多数就都是业务层的问题了，和发起请求的客户端确定好到底是用http还是原生socket或者ws就行
 
 
-
 ## Lua
 
 ### C stack overflow
@@ -313,3 +312,25 @@ void luaStackTrace(lua_State *L)
 ```
 
 
+## Nginx
+
+### nginx -t 提示unknown directive “stream”
+
+环境： 
+ubuntu 18.04, nginx 1.14.0
+
+
+原理：  
+stream模块需要额外加载，老版本的nginx模块没有加载 需要额外手动加载  
+默认配置文件添加了`include /etc/nginx/modules-enabled/*.conf;`，被我们ansible覆盖了，加回来就好了
+
+
+解决：
+1.首先确认nginx是否包含`with-stream`编译参数
+执行`nginx -V`检查返回中是否包含`--with-stream=dynamic --with-stream_ssl_module`,如果不包含请升级nginx或自行编译包含该参数的nginx
+
+2.确认文件`/usr/lib/nginx/modules/ngx_stream_module.so`存在
+3.在`/etc/nginx/nginx.conf`中确认包含`include /etc/nginx/modules-enabled/*.conf;` 或者`load_module /usr/lib/nginx/modules/ngx_stream_module.so;`
+
+
+确保上述三步均完成 重启nginx即可
